@@ -2,19 +2,8 @@ import { cn } from "@/lib/utils";
 import type { TranscriptMessage, ToolCall } from "@/hooks/useOscar";
 import { TranscriptView } from "./TranscriptView";
 import { ToolsHistory } from "./ToolsHistory";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import {
-  Phone,
-  PhoneOff,
-  MessageSquare,
-  Wrench,
-  Mic,
-  MicOff,
-} from "lucide-react";
+import { Phone, PhoneOff } from "lucide-react";
 
 interface MeetingPanelProps {
   status: "disconnected" | "connecting" | "connected";
@@ -36,107 +25,81 @@ export function MeetingPanel({
   className,
 }: MeetingPanelProps) {
   return (
-    <Card className={cn("flex flex-col h-full", className)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <CardTitle className="text-lg">Meeting</CardTitle>
-            <Badge
-              variant={
-                status === "connected"
-                  ? "default"
-                  : status === "connecting"
-                  ? "secondary"
-                  : "outline"
-              }
-            >
-              {status === "connected" && (
-                <span className="mr-1.5 h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-              )}
-              {status}
-            </Badge>
-          </div>
-
-          {status === "connected" && (
-            <div className="flex items-center gap-2">
-              {isSpeaking ? (
-                <Mic className="h-4 w-4 text-green-500 animate-pulse" />
-              ) : (
-                <MicOff className="h-4 w-4 text-muted-foreground" />
+    <div className={cn("flex flex-col", className)}>
+      {/* Controls */}
+      <div className="p-3 border-b border-border">
+        {status === "disconnected" && (
+          <button
+            onClick={onStartMeeting}
+            className="w-full h-9 bg-foreground text-background text-sm font-medium rounded flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors"
+          >
+            <Phone className="h-3.5 w-3.5" />
+            Start
+          </button>
+        )}
+        {status === "connecting" && (
+          <button
+            disabled
+            className="w-full h-9 bg-neutral-800 text-muted-foreground text-sm rounded flex items-center justify-center"
+          >
+            Connecting...
+          </button>
+        )}
+        {status === "connected" && (
+          <div className="flex items-center gap-2">
+            <div className="flex-1 flex items-center gap-2 text-sm">
+              {isSpeaking && (
+                <span className="text-xs text-muted-foreground">
+                  Listening...
+                </span>
               )}
             </div>
-          )}
-        </div>
-
-        <div className="flex gap-2 pt-2">
-          {status === "disconnected" && (
-            <Button onClick={onStartMeeting} className="flex-1" size="sm">
-              <Phone className="h-4 w-4 mr-2" />
-              Start Meeting
-            </Button>
-          )}
-          {status === "connecting" && (
-            <Button disabled className="flex-1" size="sm">
-              Connecting...
-            </Button>
-          )}
-          {status === "connected" && (
-            <Button
+            <button
               onClick={onEndMeeting}
-              variant="destructive"
-              className="flex-1"
-              size="sm"
+              className="h-9 px-3 bg-red-600 text-white text-sm font-medium rounded flex items-center gap-2 hover:bg-red-700 transition-colors"
             >
-              <PhoneOff className="h-4 w-4 mr-2" />
-              End Meeting
-            </Button>
-          )}
-        </div>
-      </CardHeader>
+              <PhoneOff className="h-3.5 w-3.5" />
+              End
+            </button>
+          </div>
+        )}
+      </div>
 
-      <Separator />
-
-      <CardContent className="flex-1 p-0 overflow-hidden">
-        <Tabs defaultValue="transcript" className="flex flex-col h-full">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-            <TabsTrigger
-              value="transcript"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Transcript
-              {transcript.length > 0 && (
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  {transcript.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value="tools"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              <Wrench className="h-4 w-4 mr-2" />
-              Tools
-              {toolCalls.length > 0 && (
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  {toolCalls.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent
+      {/* Tabs */}
+      <Tabs defaultValue="transcript" className="flex-1 flex flex-col min-h-0">
+        <TabsList className="h-9 w-full justify-start rounded-none border-b border-border bg-transparent px-3 gap-4">
+          <TabsTrigger
             value="transcript"
-            className="flex-1 m-0 overflow-hidden"
+            className="h-9 px-0 rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent text-xs data-[state=active]:text-foreground text-muted-foreground"
           >
-            <TranscriptView messages={transcript} />
-          </TabsContent>
+            Transcript
+            {transcript.length > 0 && (
+              <span className="ml-1.5 text-muted-foreground">
+                {transcript.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger
+            value="tools"
+            className="h-9 px-0 rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent text-xs data-[state=active]:text-foreground text-muted-foreground"
+          >
+            Tools
+            {toolCalls.length > 0 && (
+              <span className="ml-1.5 text-muted-foreground">
+                {toolCalls.length}
+              </span>
+            )}
+          </TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="tools" className="flex-1 m-0 overflow-hidden">
-            <ToolsHistory toolCalls={toolCalls} />
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+        <TabsContent value="transcript" className="flex-1 m-0 overflow-hidden">
+          <TranscriptView messages={transcript} />
+        </TabsContent>
+
+        <TabsContent value="tools" className="flex-1 m-0 overflow-hidden">
+          <ToolsHistory toolCalls={toolCalls} />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

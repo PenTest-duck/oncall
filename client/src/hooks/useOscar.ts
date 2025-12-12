@@ -1,5 +1,5 @@
 import { useConversation } from "@elevenlabs/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { client } from "@/lib/api";
 
 export interface TranscriptMessage {
@@ -43,6 +43,12 @@ export function useOscar(agentId: string): UseOscarReturn {
   const [toolCalls, setToolCalls] = useState<ToolCall[]>([]);
   const [currentHtml, setCurrentHtml] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"single" | "quadrant">("single");
+
+  // Ref to access current HTML in callbacks without recreating them
+  const currentHtmlRef = useRef<string[]>([]);
+  useEffect(() => {
+    currentHtmlRef.current = currentHtml;
+  }, [currentHtml]);
 
   // Load base.html on mount
   useEffect(() => {
@@ -233,8 +239,16 @@ export function useOscar(agentId: string): UseOscarReturn {
         agentId,
         connectionType: "webrtc",
         clientTools: {
-          vibe_code: async ({ prompt }: { prompt: string }) => {
+          vibe_code: async ({
+            prompt,
+            variants_count,
+          }: {
+            prompt: string;
+            variants_count?: number;
+          }) => {
             const toolId = crypto.randomUUID();
+            // Normalize variants_count to 1 or 4
+            const variantCount = variants_count === 4 ? 4 : 1;
 
             // Add pending tool call
             setToolCalls((prev) => [
@@ -242,7 +256,7 @@ export function useOscar(agentId: string): UseOscarReturn {
               {
                 id: toolId,
                 name: "vibe_code",
-                params: { prompt },
+                params: { prompt, variants_count: variantCount },
                 timestamp: new Date(),
                 status: "pending",
               },
@@ -250,7 +264,11 @@ export function useOscar(agentId: string): UseOscarReturn {
 
             try {
               const res = await client["vibe-code"].$post({
-                json: { prompt },
+                json: {
+                  prompt,
+                  baseHtml: currentHtmlRef.current[0],
+                  variants_count: variantCount as 1 | 4,
+                },
               });
 
               const data = await res.json();
@@ -259,9 +277,10 @@ export function useOscar(agentId: string): UseOscarReturn {
                 throw new Error(data.message);
               }
 
-              // Update canvas with the generated HTML
-              setCurrentHtml([data.html]);
-              setViewMode("single");
+              // Update canvas with the generated HTML(s)
+              setCurrentHtml(data.html);
+              // Switch to quadrant view if 4 variants, single view if 1
+              setViewMode(variantCount === 4 ? "quadrant" : "single");
 
               // Update tool call status
               setToolCalls((prev) =>
@@ -270,13 +289,13 @@ export function useOscar(agentId: string): UseOscarReturn {
                     ? {
                         ...tc,
                         status: "success" as const,
-                        result: "Generated vibe code successfully",
+                        result: `Generated ${data.html.length} variant(s) successfully`,
                       }
                     : tc
                 )
               );
 
-              return "Successfully generated the HTML and displayed it in the canvas";
+              return `Successfully generated ${data.html.length} HTML variant(s) and displayed them in the canvas`;
             } catch (error) {
               // Update tool call status
               setToolCalls((prev) =>

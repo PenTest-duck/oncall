@@ -1,8 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { ToolCall } from "@/hooks/useOscar";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Wrench, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 interface ToolsHistoryProps {
   toolCalls: ToolCall[];
@@ -14,72 +13,53 @@ export function ToolsHistory({ toolCalls, className }: ToolsHistoryProps) {
     return (
       <div
         className={cn(
-          "flex flex-col items-center justify-center py-8 text-center text-muted-foreground",
+          "flex items-center justify-center py-8 text-muted-foreground text-sm",
           className
         )}
       >
-        <Wrench className="h-8 w-8 mb-2 opacity-50" />
-        <p className="text-sm">No tool calls yet</p>
-        <p className="text-xs">Oscar will use tools to generate mockups</p>
+        No tool calls
       </div>
     );
   }
 
   return (
     <ScrollArea className={cn("flex-1", className)}>
-      <div className="space-y-2 p-2">
+      <div className="space-y-1 p-3">
         {toolCalls.map((tool) => (
           <div
             key={tool.id}
-            className="rounded-lg border bg-card p-3 space-y-2"
+            className="flex items-start gap-2 py-2 px-2 rounded hover:bg-neutral-800/50 transition-colors"
           >
-            <div className="flex items-center justify-between">
+            <div className="mt-0.5">
+              {tool.status === "pending" && (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+              )}
+              {tool.status === "success" && (
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+              )}
+              {tool.status === "error" && (
+                <XCircle className="h-3.5 w-3.5 text-red-500" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <Badge
-                  variant={
-                    tool.status === "success"
-                      ? "default"
-                      : tool.status === "error"
-                      ? "destructive"
-                      : "secondary"
-                  }
-                  className="text-xs"
-                >
-                  {tool.name.replace("_", " ")}
-                </Badge>
-                {tool.status === "pending" && (
-                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                )}
-                {tool.status === "success" && (
-                  <CheckCircle className="h-3 w-3 text-green-500" />
-                )}
-                {tool.status === "error" && (
-                  <XCircle className="h-3 w-3 text-destructive" />
-                )}
+                <span className="text-xs font-mono text-foreground">
+                  {tool.name}
+                </span>
+                <span className="text-[10px] text-muted-foreground/60">
+                  {tool.timestamp.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })}
+                </span>
               </div>
-              <span className="text-xs text-muted-foreground">
-                {tool.timestamp.toLocaleTimeString()}
-              </span>
+              {tool.result && (
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                  {tool.result}
+                </p>
+              )}
             </div>
-
-            <div className="text-xs text-muted-foreground">
-              <pre className="whitespace-pre-wrap font-mono bg-muted/50 rounded p-2 overflow-x-auto">
-                {JSON.stringify(tool.params, null, 2)}
-              </pre>
-            </div>
-
-            {tool.result && (
-              <p
-                className={cn(
-                  "text-xs",
-                  tool.status === "error"
-                    ? "text-destructive"
-                    : "text-muted-foreground"
-                )}
-              >
-                {tool.result}
-              </p>
-            )}
           </div>
         ))}
       </div>

@@ -23,8 +23,8 @@ export function SingleView({ html, className }: SingleViewProps) {
   return (
     <iframe
       ref={iframeRef}
-      title="HTML Preview"
-      className={cn("w-full h-full border-0 rounded-lg bg-white", className)}
+      title="Preview"
+      className={cn("w-full h-full border-0 bg-white", className)}
       sandbox="allow-scripts allow-same-origin"
     />
   );

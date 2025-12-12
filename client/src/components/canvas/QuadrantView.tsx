@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { SingleView } from "./SingleView";
-import { Badge } from "@/components/ui/badge";
 
 interface QuadrantViewProps {
   htmlArray: string[];
@@ -13,7 +12,6 @@ export function QuadrantView({
   onSelect,
   className,
 }: QuadrantViewProps) {
-  // Ensure we have exactly 4 items, padding with empty if needed
   const items = [...htmlArray];
   while (items.length < 4) {
     items.push("");
@@ -25,26 +23,24 @@ export function QuadrantView({
         <div
           key={index}
           className={cn(
-            "relative rounded-lg border bg-card overflow-hidden transition-all",
-            html &&
-              onSelect &&
-              "cursor-pointer hover:ring-2 hover:ring-primary",
-            !html && "bg-muted/20"
+            "relative rounded overflow-hidden",
+            html && onSelect && "cursor-pointer",
+            html
+              ? "bg-white hover:ring-2 hover:ring-neutral-400 transition-shadow"
+              : "bg-neutral-900 border border-dashed border-neutral-800"
           )}
           onClick={() => html && onSelect?.(index)}
         >
-          <Badge
-            variant="secondary"
-            className="absolute top-2 left-2 z-10 text-xs"
-          >
-            Variant {index + 1}
-          </Badge>
+          {/* Label */}
+          <span className="absolute top-2 left-2 z-10 text-[10px] font-medium bg-black/70 text-white px-1.5 py-0.5 rounded">
+            {index + 1}
+          </span>
 
           {html ? (
             <SingleView html={html} className="w-full h-full" />
           ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              No content
+            <div className="flex items-center justify-center h-full text-muted-foreground text-xs">
+              Empty
             </div>
           )}
         </div>

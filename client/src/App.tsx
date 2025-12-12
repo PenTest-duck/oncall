@@ -19,15 +19,7 @@ function App() {
   } = useOscar(AGENT_ID);
 
   const handleSelectVariant = (index: number) => {
-    // When a variant is selected in quadrant view, switch to single view showing that variant
     if (currentHtml[index]) {
-      // Reorder so selected variant is first
-      const newHtml = [
-        currentHtml[index],
-        ...currentHtml.filter((_, i) => i !== index),
-      ];
-      // Note: In a real app, you'd want to update the state here
-      // For now, we just switch to single view
       setViewMode("single");
     }
   };
@@ -35,34 +27,28 @@ function App() {
   return (
     <div className="h-screen w-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="border-b bg-card px-6 py-4 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">
-                O
-              </span>
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold">Oscar</h1>
-              <p className="text-xs text-muted-foreground">
-                AI Forward-Deployed Engineer
-              </p>
-            </div>
+      <header className="border-b border-border h-14 px-4 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="h-7 w-7 rounded bg-foreground flex items-center justify-center">
+            <span className="text-background font-semibold text-sm">O</span>
           </div>
-
-          {!AGENT_ID && (
-            <div className="text-sm text-destructive bg-destructive/10 px-3 py-1.5 rounded-md">
-              Missing VITE_ELEVENLABS_AGENT_ID environment variable
-            </div>
+          <span className="font-medium">Oscar</span>
+          {status === "connected" && (
+            <span className="text-xs text-emerald-500">● Connected</span>
           )}
         </div>
+
+        {!AGENT_ID && (
+          <span className="text-xs text-red-500">
+            Missing VITE_ELEVENLABS_AGENT_ID
+          </span>
+        )}
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex overflow-hidden p-4 gap-4">
-        {/* Left Panel - Meeting (1/3 width) */}
-        <div className="w-1/3 min-w-[320px] max-w-[480px]">
+      <main className="flex-1 flex overflow-hidden">
+        {/* Sidebar - Meeting */}
+        <aside className="w-72 border-r border-border shrink-0 flex flex-col">
           <MeetingPanel
             status={status}
             isSpeaking={isSpeaking}
@@ -70,12 +56,12 @@ function App() {
             toolCalls={toolCalls}
             onStartMeeting={startMeeting}
             onEndMeeting={endMeeting}
-            className="h-full"
+            className="flex-1"
           />
-        </div>
+        </aside>
 
-        {/* Right Panel - Canvas (2/3 width) */}
-        <div className="flex-1">
+        {/* Canvas - Main area */}
+        <div className="flex-1 min-w-0 bg-neutral-950">
           <CanvasPanel
             htmlArray={currentHtml}
             viewMode={viewMode}

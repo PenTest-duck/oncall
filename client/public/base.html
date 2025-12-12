@@ -3,21 +3,498 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Base Template</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>AI Agent Personal Data Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      display: flex;
+      min-height: 100vh;
+      background-color: #1a1a2e;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 480px;
+      background-color: #1a1a2e;
+      color: #fff;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #2a2a4a;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #f97316, #fb923c);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .project-title {
+      font-size: 14px;
+      color: #e5e5e5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .project-title::after {
+      content: '🔒';
+      font-size: 12px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .nav-tab {
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid #3a3a5a;
+      color: #888;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .nav-tab.active {
+      background: #2a2a4a;
+      color: #fff;
+    }
+
+    .content-section {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .content-section ul {
+      list-style: disc;
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    .content-section li {
+      color: #d1d5db;
+      font-size: 14px;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .content-section p {
+      color: #9ca3af;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .version-button {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: #fff;
+      border: none;
+      padding: 16px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 16px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .version-button-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .version-button-title::after {
+      content: '🔖';
+    }
+
+    .version-button-subtitle {
+      font-size: 12px;
+      color: #93c5fd;
+      margin-top: 4px;
+    }
+
+    .tokens-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #2a2a4a;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tokens-text {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .upgrade-link {
+      color: #f97316;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .chat-input-container {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .chat-input {
+      width: 100%;
+      padding: 16px;
+      padding-right: 50px;
+      background: #2a2a4a;
+      border: 1px solid #3a3a5a;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .chat-input::placeholder {
+      color: #6b7280;
+    }
+
+    .send-button {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      background: #3b82f6;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .send-button svg {
+      fill: #fff;
+      width: 16px;
+      height: 16px;
+    }
+
+    .bottom-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #2a2a4a;
+    }
+
+    .bottom-bar-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .model-selector {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    .sparkle {
+      color: #a78bfa;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      background-color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      position: relative;
+    }
+
+    .auth-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 48px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .shield-icon {
+      width: 72px;
+      height: 72px;
+      background: #1a1a2e;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+
+    .shield-icon svg {
+      width: 36px;
+      height: 36px;
+      fill: #fff;
+    }
+
+    .auth-title {
+      font-size: 28px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .auth-subtitle {
+      font-size: 15px;
+      color: #6b7280;
+      margin-bottom: 32px;
+    }
+
+    .features-section {
+      text-align: left;
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .features-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 12px;
+    }
+
+    .features-list {
+      list-style: none;
+    }
+
+    .features-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #4b5563;
+      margin-bottom: 8px;
+    }
+
+    .features-list li::before {
+      content: '•';
+      color: #3b82f6;
+      font-weight: bold;
+    }
+
+    .signin-button {
+      width: 100%;
+      padding: 16px 24px;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      transition: background 0.2s;
+    }
+
+    .signin-button:hover {
+      background: #2a2a4a;
+    }
+
+    .signin-button svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
+    }
+
+    .signin-button .arrow {
+      margin-left: auto;
+    }
+
+    .consent-text {
+      font-size: 13px;
+      color: #9ca3af;
+      line-height: 1.5;
+    }
+
+    .secured-by {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .secured-by strong {
+      color: #374151;
+    }
+
+    .made-in-bolt {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #374151;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .bolt-logo {
+      width: 20px;
+      height: 20px;
+      background: #000;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 12px;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-  <div class="container mx-auto px-4 py-8">
-    <header class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Welcome</h1>
-      <p class="text-gray-600 mt-2">This is a base template. Oscar will modify this based on your conversation.</p>
-    </header>
-    
-    <main class="bg-white rounded-lg shadow-sm border p-6">
-      <p class="text-gray-700">
-        Start a meeting and describe what you'd like to build. Oscar will generate UI mockups here.
-      </p>
-    </main>
-  </div>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">b</div>
+      <span class="project-title">AI Agent Personal Data Demo</span>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-tab">👁️</button>
+      <button class="nav-tab active">&lt;&gt;</button>
+      <button class="nav-tab">📋</button>
+      <button class="nav-tab">⚙️</button>
+    </div>
+
+    <div class="content-section">
+      <ul>
+        <li>Home Address (for delivery)</li>
+        <li>Clothing Preference (for recommendations)</li>
+        <li>Shoe Size (for footwear)</li>
+        <li>Budget Range (for price filtering)</li>
+        <li>Favorite Brands (for personalization)</li>
+      </ul>
+
+      <p>Each permission is toggleable with clear descriptions. Users can grant selected permissions or deny all access. Upon granting, a success confirmation appears.</p>
+
+      <p>The database schema stores agents, permission types, user permissions, and vault data with proper security policies ensuring users can only access their own information.</p>
+
+      <button class="version-button">
+        <div class="version-button-title">Create AI agent permission flow demo</div>
+        <div class="version-button-subtitle">Version 1</div>
+      </button>
+    </div>
+
+    <div class="tokens-info">
+      <span class="tokens-text">300K daily tokens remaining.</span>
+      <a href="#" class="upgrade-link">Switch to Pro for 33x more usage</a>
+    </div>
+
+    <div class="chat-input-container">
+      <input type="text" class="chat-input" placeholder="How can Bolt help you today? (or /command)">
+      <button class="send-button">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="model-selector">
+        <span class="sparkle">✨</span>
+        <span>Sonnet 4.5</span>
+        <span>▾</span>
+      </div>
+      <div class="bottom-bar-item">
+        <span>✦</span>
+        <span>Select</span>
+      </div>
+      <div class="bottom-bar-item">
+        <span>💡</span>
+        <span>Plan</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="auth-card">
+      <div class="shield-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+        </svg>
+      </div>
+
+      <h1 class="auth-title">Shopping Assistant</h1>
+      <p class="auth-subtitle">Your personal AI shopping assistant</p>
+
+      <div class="features-section">
+        <h3 class="features-title">What you get:</h3>
+        <ul class="features-list">
+          <li>Personalized product recommendations</li>
+          <li>Smart delivery options based on your location</li>
+          <li>Style suggestions matching your preferences</li>
+        </ul>
+      </div>
+
+      <button class="signin-button">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+        </svg>
+        <span>Sign in with Vault</span>
+        <span class="arrow">→</span>
+      </button>
+
+      <p class="consent-text">By continuing, you'll be able to review and control what information the Shopping Assistant can access</p>
+    </div>
+
+    <div class="secured-by">Secured by <strong>Vault</strong></div>
+
+    <div class="made-in-bolt">
+      <span class="bolt-logo">b</span>
+      <span>Made in Bolt</span>
+    </div>
+  </main>
 </body>
 </html>

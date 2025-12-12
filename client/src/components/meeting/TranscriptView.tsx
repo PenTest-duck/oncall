@@ -6,7 +6,6 @@ import {
   ConversationEmptyState,
   ConversationScrollButton,
 } from "@/components/ui/conversation";
-import { MessageCircle, User, Bot } from "lucide-react";
 
 interface TranscriptViewProps {
   messages: TranscriptMessage[];
@@ -16,49 +15,35 @@ interface TranscriptViewProps {
 export function TranscriptView({ messages, className }: TranscriptViewProps) {
   return (
     <Conversation className={cn("flex-1", className)}>
-      <ConversationContent className="space-y-3">
+      <ConversationContent className="space-y-2 p-3">
         {messages.length === 0 ? (
           <ConversationEmptyState
-            title="No conversation yet"
-            description="Start a meeting to begin the conversation"
-            icon={<MessageCircle className="h-8 w-8" />}
+            title="No messages"
+            description="Start a meeting to chat"
           />
         ) : (
           messages.map((message) => (
             <div
               key={message.id}
               className={cn(
-                "flex gap-3 rounded-lg p-3",
-                message.role === "user"
-                  ? "bg-primary/5 ml-4"
-                  : "bg-muted/50 mr-4"
+                "text-sm py-2 px-3 rounded",
+                message.role === "user" ? "bg-neutral-800" : "bg-transparent"
               )}
             >
-              <div
-                className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                  message.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-secondary-foreground"
-                )}
-              >
-                {message.role === "user" ? (
-                  <User className="h-4 w-4" />
-                ) : (
-                  <Bot className="h-4 w-4" />
-                )}
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-medium text-muted-foreground">
+                  {message.role === "user" ? "You" : "Oscar"}
+                </span>
+                <span className="text-[10px] text-muted-foreground/60">
+                  {message.timestamp.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
               </div>
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">
-                    {message.role === "user" ? "You" : "Oscar"}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {message.timestamp.toLocaleTimeString()}
-                  </span>
-                </div>
-                <p className="text-sm text-foreground/90">{message.content}</p>
-              </div>
+              <p className="text-foreground/90 leading-relaxed">
+                {message.content}
+              </p>
             </div>
           ))
         )}

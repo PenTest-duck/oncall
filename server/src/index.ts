@@ -155,15 +155,18 @@ const route = app
       "json",
       z.object({
         prompt: z.string().min(1),
+        baseHtml: z.string().optional(),
+        variants_count: z.union([z.literal(1), z.literal(4)]).default(1),
       })
     ),
     async (c) => {
-      const { prompt } = c.req.valid("json");
+      const { prompt, baseHtml, variants_count } = c.req.valid("json");
 
       try {
-        const html = await vibeCode(prompt);
+        const html = await vibeCode(prompt, baseHtml, variants_count);
         return c.json({
           html,
+          variants: html.length,
           timestamp: new Date().toISOString(),
         });
       } catch (error) {

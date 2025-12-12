@@ -20,7 +20,9 @@ STYLE GUIDELINES:
 - Use a professional color palette (blues, grays, with accent colors)
 - Include appropriate icons using Lucide or Heroicons CDN if needed
 - Make text readable with proper contrast
-- Add hover states and visual feedback where appropriate`;
+- Add hover states and visual feedback where appropriate
+
+MAKE SURE THE HTML IS SELF CONTAINED. E.G. DO NOT REFERENCE EXTERNAL IMAGE URL.`;
 
 export async function generateHtml(
   prompt: string,
@@ -29,18 +31,17 @@ export async function generateHtml(
 ): Promise<string[]> {
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-  const results: string[] = [];
-
   const contextPrompt = baseHtml
     ? `Based on this existing HTML:\n\n${baseHtml}\n\nUser request: ${prompt}`
     : prompt;
 
-  for (let i = 0; i < variants; i++) {
+  // Generate variants in parallel for better performance
+  const variantPromises = Array.from({ length: variants }, async (_, i) => {
     const variantPrompt =
       variants > 1
         ? `${contextPrompt}\n\nThis is variant ${
             i + 1
-          } of ${variants}. Create a unique design variation while maintaining the core functionality.`
+          } of ${variants}. Create a UNIQUE and DISTINCT design variation. Be creative with layout, colors, and styling while maintaining the core functionality. Make this variant noticeably different from the others.`
         : contextPrompt;
 
     const result = await model.generateContent({
@@ -54,8 +55,11 @@ export async function generateHtml(
     html = html.replace(/^```html?\n?/i, "").replace(/\n?```$/i, "");
     html = html.trim();
 
-    results.push(html);
-  }
+    return html;
+  });
+
+  // Wait for all variants to complete in parallel
+  const results = await Promise.all(variantPromises);
 
   return results;
 }
@@ -88,7 +92,7 @@ Return ONLY the modified HTML code, nothing else.`;
   return html;
 }
 
-const VIBE_CODE_SYSTEM_PROMPT = `You are an expert full-stack developer who creates beautiful, functional web applications. Your task is to generate complete, self-contained HTML pages based on user prompts.
+const VIBE_CODE_SYSTEM_PROMPT = `You are an expert full-stack developer who creates beautiful, functional web applications. Your task is to generate or edit complete, self-contained HTML pages based on user prompts.
 
 RULES:
 1. Generate ONLY valid HTML code - no markdown, no code fences, no explanations
@@ -99,6 +103,7 @@ RULES:
 6. Use realistic placeholder content and data
 7. The HTML must be complete and self-contained (can be rendered in an iframe)
 8. Start with <!DOCTYPE html> and include all necessary tags
+9. If given existing HTML to modify, preserve the overall structure while making the requested changes
 
 STYLE GUIDELINES:
 - Use modern, clean design with attention to detail
@@ -117,19 +122,45 @@ FUNCTIONALITY:
 
 Remember: You are "vibe coding" - creating something that looks and feels amazing, capturing the essence of what the user wants.`;
 
-export async function vibeCode(prompt: string): Promise<string> {
+export async function vibeCode(
+  prompt: string,
+  baseHtml?: string,
+  variantsCount: 1 | 4 = 1
+): Promise<string[]> {
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    systemInstruction: VIBE_CODE_SYSTEM_PROMPT,
-  });
+  const fullPrompt = baseHtml
+    ? `Here is the current HTML that you should modify based on the user's request:\n\n${baseHtml}\n\nUser request: ${prompt}`
+    : prompt;
 
-  let html = result.response.text();
+  // Generate variants in parallel
+  const variantPromises = Array.from(
+    { length: variantsCount },
+    async (_, i) => {
+      const variantPrompt =
+        variantsCount > 1
+          ? `${fullPrompt}\n\nThis is variant ${
+              i + 1
+            } of ${variantsCount}. Create a UNIQUE and DISTINCT design variation. Be creative with layout, colors, typography, and styling choices. Make this variant noticeably different from the others while fulfilling the same requirements.`
+          : fullPrompt;
 
-  // Clean up any markdown code fences if present
-  html = html.replace(/^```html?\n?/i, "").replace(/\n?```$/i, "");
-  html = html.trim();
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: variantPrompt }] }],
+        systemInstruction: VIBE_CODE_SYSTEM_PROMPT,
+      });
 
-  return html;
+      let html = result.response.text();
+
+      // Clean up any markdown code fences if present
+      html = html.replace(/^```html?\n?/i, "").replace(/\n?```$/i, "");
+      html = html.trim();
+
+      return html;
+    }
+  );
+
+  // Wait for all variants to complete in parallel
+  const results = await Promise.all(variantPromises);
+
+  return results;
 }
