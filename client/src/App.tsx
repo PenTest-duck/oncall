@@ -14,6 +14,7 @@ function App() {
     transcript,
     toolCalls,
     currentHtml,
+    currentImages,
     viewMode,
     setViewMode,
   } = useOscar(AGENT_ID);
@@ -64,6 +65,7 @@ function App() {
         <div className="flex-1 min-w-0 bg-neutral-950">
           <CanvasPanel
             htmlArray={currentHtml}
+            images={currentImages}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             onSelectVariant={handleSelectVariant}

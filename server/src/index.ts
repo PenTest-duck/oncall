@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { cors } from "hono/cors";
-import { generateHtml, editHtml, vibeCode } from "./lib/gemini";
+import { generateHtml, editHtml, vibeCode, generateImage } from "./lib/gemini";
 
 const app = new Hono();
 
@@ -174,6 +174,36 @@ const route = app
         return c.json(
           {
             error: "Failed to generate vibe code",
+            message: error instanceof Error ? error.message : "Unknown error",
+          },
+          500
+        );
+      }
+    }
+  )
+  // POST endpoint to generate an image from a prompt
+  .post(
+    "/generate-image",
+    zValidator(
+      "json",
+      z.object({
+        prompt: z.string().min(1),
+      })
+    ),
+    async (c) => {
+      const { prompt } = c.req.valid("json");
+
+      try {
+        const imageUrl = await generateImage(prompt);
+        return c.json({
+          imageUrl,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error("Error generating image:", error);
+        return c.json(
+          {
+            error: "Failed to generate image",
             message: error instanceof Error ? error.message : "Unknown error",
           },
           500

@@ -1,6 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const genAINew = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 const HTML_SYSTEM_PROMPT = `You are an expert UI/UX designer and frontend developer. Your task is to generate beautiful, modern HTML mockups based on user descriptions.
 
@@ -163,4 +165,22 @@ export async function vibeCode(
   const results = await Promise.all(variantPromises);
 
   return results;
+}
+
+export async function generateImage(prompt: string): Promise<string> {
+  const response = await genAINew.models.generateImages({
+    model: "imagen-3.0-generate-002",
+    prompt,
+    config: {
+      numberOfImages: 1,
+    },
+  });
+
+  const image = response.generatedImages?.[0];
+  if (!image?.image?.imageBytes) {
+    throw new Error("No image generated");
+  }
+
+  // Return as base64 data URL
+  return `data:image/png;base64,${image.image.imageBytes}`;
 }

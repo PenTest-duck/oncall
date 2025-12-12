@@ -31,6 +31,7 @@ export interface UseOscarReturn {
   transcript: TranscriptMessage[];
   toolCalls: ToolCall[];
   currentHtml: string[];
+  currentImages: string[];
   viewMode: "single" | "quadrant";
 
   // Actions
@@ -42,6 +43,7 @@ export function useOscar(agentId: string): UseOscarReturn {
   const [transcript, setTranscript] = useState<TranscriptMessage[]>([]);
   const [toolCalls, setToolCalls] = useState<ToolCall[]>([]);
   const [currentHtml, setCurrentHtml] = useState<string[]>([]);
+  const [currentImages, setCurrentImages] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"single" | "quadrant">("single");
 
   // Ref to access current HTML in callbacks without recreating them
@@ -318,6 +320,71 @@ export function useOscar(agentId: string): UseOscarReturn {
               }`;
             }
           },
+          generate_image: async ({ prompt }: { prompt: string }) => {
+            const toolId = crypto.randomUUID();
+
+            // Add pending tool call
+            setToolCalls((prev) => [
+              ...prev,
+              {
+                id: toolId,
+                name: "generate_image",
+                params: { prompt },
+                timestamp: new Date(),
+                status: "pending",
+              },
+            ]);
+
+            try {
+              const res = await client["generate-image"].$post({
+                json: { prompt },
+              });
+
+              const data = await res.json();
+
+              if ("error" in data) {
+                throw new Error(data.message);
+              }
+
+              // Add the generated image to the images array
+              setCurrentImages((prev) => [...prev, data.imageUrl]);
+
+              // Update tool call status
+              setToolCalls((prev) =>
+                prev.map((tc) =>
+                  tc.id === toolId
+                    ? {
+                        ...tc,
+                        status: "success" as const,
+                        result: "Image generated successfully",
+                      }
+                    : tc
+                )
+              );
+
+              return "Successfully generated image and displayed it in the canvas";
+            } catch (error) {
+              // Update tool call status
+              setToolCalls((prev) =>
+                prev.map((tc) =>
+                  tc.id === toolId
+                    ? {
+                        ...tc,
+                        status: "error" as const,
+                        result:
+                          error instanceof Error
+                            ? error.message
+                            : "Unknown error",
+                      }
+                    : tc
+                )
+              );
+
+              return `Error generating image: ${
+                error instanceof Error ? error.message : "Unknown error"
+              }`;
+            }
+          },
         },
       });
     } catch (error) {
@@ -333,6 +400,7 @@ export function useOscar(agentId: string): UseOscarReturn {
   const clearTranscript = useCallback(() => {
     setTranscript([]);
     setToolCalls([]);
+    setCurrentImages([]);
   }, []);
 
   return {
@@ -343,6 +411,7 @@ export function useOscar(agentId: string): UseOscarReturn {
     transcript,
     toolCalls,
     currentHtml,
+    currentImages,
     viewMode,
     setViewMode,
     clearTranscript,
